@@ -23,9 +23,9 @@
 ##runApp("Users/kacperszostakow/Google Drive/02_Education/01_Humboldt University/PMP/Shiny app - trading dashboard")
 
 # Define UI for the app ----
-navbarPage(
-  title = 'DataTable Options',
-  tabPanel('Display length',     DT::dataTableOutput('ex1')),
+ui <- navbarPage(
+  title = 'PMP Quant - Portfolio Performance',
+  tabPanel('Trade History',     DT::dataTableOutput('ex1')),
   tabPanel('Length menu',        DT::dataTableOutput('ex2')),
   tabPanel('No pagination',      DT::dataTableOutput('ex3')),
   tabPanel('No filtering',       DT::dataTableOutput('ex4')),
@@ -33,13 +33,13 @@ navbarPage(
 )
 
 # Define server logic required to draw a histogram ----
-function(input, output) {
-
+server <- function(input, output) {
+  
   # display 10 rows initially
   output$ex1 <- DT::renderDataTable(
     DT::datatable(iris, options = list(pageLength = 25))
   )
-
+  
   # -1 means no pagination; the 2nd element contains menu labels
   output$ex2 <- DT::renderDataTable(
     DT::datatable(
@@ -49,29 +49,29 @@ function(input, output) {
       )
     )
   )
-
+  
   # you can also use paging = FALSE to disable pagination
   output$ex3 <- DT::renderDataTable(
     DT::datatable(iris, options = list(paging = FALSE))
   )
-
+  
   # turn off filtering (no searching boxes)
   output$ex4 <- DT::renderDataTable(
     DT::datatable(iris, options = list(searching = FALSE))
   )
-
+  
   # write literal JS code in JS()
   output$ex5 <- DT::renderDataTable(DT::datatable(
     iris,
     options = list(rowCallback = DT::JS(
       'function(row, data) {
-        // Bold cells for those >= 5 in the first column
-        if (parseFloat(data[1]) >= 5.0)
-          $("td:eq(1)", row).css("font-weight", "bold");
-      }'
+      // Bold cells for those >= 5 in the first column
+      if (parseFloat(data[1]) >= 5.0)
+      $("td:eq(1)", row).css("font-weight", "bold");
+}'
     ))
-  ))
-}
+    ))
+  }
 
 # Create Shiny app ----
 shinyApp(ui = ui, server = server)
