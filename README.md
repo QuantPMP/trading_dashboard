@@ -7,3 +7,5 @@ We tried to do our best to provide useful options such as:
 • Showing how much each Portfolio Manager contributes to the Portfolio risk. 
 
 • Visualizing the overall portfolio performance as well as group performance.
+
+Visit the webpage here: https://kacperszos.shinyapps.io/shiny_app_-_trading_dashboard/
