@@ -37,7 +37,7 @@ server <- function(input, output) {
   
   # display 10 rows initially
   output$ex1 <- DT::renderDataTable(
-    DT::datatable(iris, options = list(pageLength = 25))
+    DT::datatable(read.csv("tradeLog.csv"), options = list(pageLength = 25))
   )
   
   # -1 means no pagination; the 2nd element contains menu labels
