@@ -17,19 +17,46 @@
 ##
 ## ---------------------------
 
-
-
-##library(shiny) --- delete if not needed
 ##runApp("Users/kacperszostakow/Google Drive/02_Education/01_Humboldt University/PMP/Shiny app - trading dashboard")
+
+# Load packages ----
+
+library(shiny)
+library(quantmod)
+
+# Source helpers ----
+source("helpers.R")
+
 
 # Define UI for the app ----
 ui <- navbarPage(
   title = 'PMP Quant - Portfolio Performance',
-  tabPanel('Trade History',     DT::dataTableOutput('ex1')),
-  tabPanel('Length menu',        DT::dataTableOutput('ex2')),
-  tabPanel('No pagination',      DT::dataTableOutput('ex3')),
-  tabPanel('No filtering',       DT::dataTableOutput('ex4')),
-  tabPanel('Function callback',  DT::dataTableOutput('ex5'))
+  tabPanel('Trade History', DT::dataTableOutput('ex1')),
+  tabPanel('Stock Chart', titlePanel("stockVis"),
+           sidebarLayout(
+             sidebarPanel(
+               helpText("Select a stock to examine.
+                        
+                        Information will be collected from Yahoo finance."),
+               textInput("symb", "Symbol", "SPY"),
+               
+               dateRangeInput("dates",
+                              "Date range",
+                              start = "2013-01-01",
+                              end = as.character(Sys.Date())),
+               
+               br(),
+               br(),
+               
+               checkboxInput("log", "Plot y axis on log scale",
+                             value = FALSE),
+               
+               checkboxInput("adjust",
+                             "Adjust prices for inflation", value = FALSE)
+               ),
+             
+             mainPanel(plotOutput("plot"))
+             ))
 )
 
 # Define server logic required to draw a histogram ----
@@ -40,38 +67,27 @@ server <- function(input, output) {
     DT::datatable(read.csv("tradeLog.csv"), options = list(pageLength = 25))
   )
   
-  # -1 means no pagination; the 2nd element contains menu labels
-  output$ex2 <- DT::renderDataTable(
-    DT::datatable(
-      iris, options = list(
-        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
-        pageLength = 15
-      )
-    )
-  )
+  # Plot the stock performance
   
-  # you can also use paging = FALSE to disable pagination
-  output$ex3 <- DT::renderDataTable(
-    DT::datatable(iris, options = list(paging = FALSE))
-  )
+  dataInput <- reactive({
+    getSymbols(input$symb, src = "yahoo",
+               from = input$dates[1],
+               to = input$dates[2],
+               auto.assign = FALSE)
+  })
   
-  # turn off filtering (no searching boxes)
-  output$ex4 <- DT::renderDataTable(
-    DT::datatable(iris, options = list(searching = FALSE))
-  )
+  finalInput <- reactive({
+    if (!input$adjust) return(dataInput())
+    adjust(dataInput())
+  })
   
-  # write literal JS code in JS()
-  output$ex5 <- DT::renderDataTable(DT::datatable(
-    iris,
-    options = list(rowCallback = DT::JS(
-      'function(row, data) {
-      // Bold cells for those >= 5 in the first column
-      if (parseFloat(data[1]) >= 5.0)
-      $("td:eq(1)", row).css("font-weight", "bold");
-}'
-    ))
-    ))
-  }
+  output$plot <- renderPlot({
+    
+    chartSeries(finalInput(), theme = chartTheme("white"),
+                type = "line", log.scale = input$log, TA = NULL)
+  })
+  
+}
 
 # Create Shiny app ----
 shinyApp(ui = ui, server = server)
